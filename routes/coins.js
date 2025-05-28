@@ -5,9 +5,34 @@ const PriceHistory = require('../models/PriceHistory');
 const authMiddleware = require('../middleware/auth');
 
 /**
- * @route   GET /api/coins
- * @desc    모든 활성화된 코인 목록 조회
- * @access  Public
+ * @swagger
+ * tags:
+ *   name: Coins
+ *   description: 코인 정보 및 가격 기록 API
+ */
+
+/**
+ * @swagger
+ * /api/coins:
+ *   get:
+ *     summary: 모든 활성 코인 목록 조회
+ *     tags: [Coins]
+ *     responses:
+ *       200:
+ *         description: 코인 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Coin'
  */
 router.get('/', async (req, res) => {
   try {
@@ -28,9 +53,30 @@ router.get('/', async (req, res) => {
 });
 
 /**
- * @route   GET /api/coins/:id
- * @desc    특정 코인 정보 조회
- * @access  Public
+ * @swagger
+ * /api/coins/{id}:
+ *   get:
+ *     summary: 특정 코인 정보 조회
+ *     tags: [Coins]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: 코인 ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 코인 정보 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Coin'
  */
 router.get('/:id', async (req, res) => {
   try {
@@ -57,10 +103,40 @@ router.get('/:id', async (req, res) => {
 });
 
 /**
- * @route   GET /api/coins/:id/history
- * @desc    특정 코인의 가격 변동 기록 조회
- * @access  Public
- * @query   duration - 기간 (1h, 24h, 7d, 30d)
+ * @swagger
+ * /api/coins/{id}/history:
+ *   get:
+ *     summary: 특정 코인의 가격 변동 기록 조회
+ *     tags: [Coins]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: 코인 ID
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: duration
+ *         required: false
+ *         description: 기간 필터 (1h, 24h, 7d, 30d)
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 가격 기록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/PriceHistory'
  */
 router.get('/:id/history', async (req, res) => {
   try {
@@ -82,9 +158,38 @@ router.get('/:id/history', async (req, res) => {
 });
 
 /**
- * @route   POST /api/coins
- * @desc    새 코인 추가 (관리자 전용)
- * @access  Private/Admin
+ * @swagger
+ * /api/coins:
+ *   post:
+ *     summary: 새 코인 등록 (관리자 전용)
+ *     tags: [Coins]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               symbol:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               currentPrice:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: 코인 등록 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Coin'
  */
 router.post('/', authMiddleware, async (req, res) => {
   try {

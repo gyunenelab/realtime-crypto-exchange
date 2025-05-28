@@ -62,5 +62,4 @@ priceHistorySchema.statics.recordPrice = async function(coinId, price) {
 };
 
 const PriceHistory = mongoose.model('PriceHistory', priceHistorySchema);
-
 module.exports = PriceHistory; 

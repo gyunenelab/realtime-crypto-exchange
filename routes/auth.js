@@ -1,5 +1,9 @@
 // routes/auth.js
 // 사용자 인증 관련 라우트 설정
+const express = require('express');
+const router = express.Router();
+const authController = require('../controllers/auth');
+const authMiddleware = require('../middleware/auth');
 /**
  * @swagger
  * tags:
@@ -33,6 +37,7 @@
  *       400:
  *         description: 이메일 중복
  */
+router.post('/register', authController.register);
 
 /**
  * @swagger
@@ -58,6 +63,7 @@
  *       400:
  *         description: 로그인 실패
  */
+router.post('/login', authController.login);
 
 /**
  * @swagger
@@ -73,14 +79,6 @@
  *       401:
  *         description: 인증 실패
  */
-
-const express = require('express');
-const router = express.Router();
-const authController = require('../controllers/auth');
-const authMiddleware = require('../middleware/auth');
-
-router.post('/register', authController.register);
-router.post('/login', authController.login);
 router.get('/me', authMiddleware, authController.getMe); // ✅ 추가
 
 module.exports = router;

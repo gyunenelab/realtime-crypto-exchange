@@ -24,7 +24,7 @@ const options = {
     },
     security: [{ bearerAuth: [] }],
   },
-  apis: ['./routes/*.js'], // ✅ API 명세 주석을 여기에 작성할 예정
+  apis: ['./routes/*.js'], //✅ API 명세 Swagger
 };
 
 const swaggerSpec = swaggerJSDoc(options);

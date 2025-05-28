@@ -12,8 +12,8 @@ const swaggerSpec = require('./swagger/swaggerConfig');
 
 // 라우트 파일
 const authRoutes = require('./routes/auth');
-//const coinRoutes = require('./routes/coins');
-//const walletRoutes = require('./routes/wallets');
+const coinRoutes = require('./routes/coins');
+const walletRoutes = require('./routes/wallets');
 //const orderRoutes = require('./routes/orders');
 //const transactionRoutes = require('./routes/transactions');
 
@@ -38,8 +38,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // API 라우트 설정
 app.use('/api/auth', authRoutes);
-//app.use('/api/coins', coinRoutes);
-//app.use('/api/wallets', walletRoutes);
+app.use('/api/coins', coinRoutes);
+app.use('/api/wallets', walletRoutes);
 //app.use('/api/orders', orderRoutes);
 //app.use('/api/transactions', transactionRoutes);
 
