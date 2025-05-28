@@ -6,12 +6,16 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 
+// Swagger 설정
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./swagger/swaggerConfig');
+
 // 라우트 파일
 const authRoutes = require('./routes/auth');
-const coinRoutes = require('./routes/coins');
-const walletRoutes = require('./routes/wallets');
-const orderRoutes = require('./routes/orders');
-const transactionRoutes = require('./routes/transactions');
+//const coinRoutes = require('./routes/coins');
+//const walletRoutes = require('./routes/wallets');
+//const orderRoutes = require('./routes/orders');
+//const transactionRoutes = require('./routes/transactions');
 
 // WebSocket 핸들러
 const setupWebSocket = require('./websocket/setup');
@@ -23,6 +27,9 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
+// Swagger UI 설정
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 // 미들웨어 설정
 app.use(cors());
 app.use(express.json());
@@ -31,10 +38,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // API 라우트 설정
 app.use('/api/auth', authRoutes);
-app.use('/api/coins', coinRoutes);
-app.use('/api/wallets', walletRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/transactions', transactionRoutes);
+//app.use('/api/coins', coinRoutes);
+//app.use('/api/wallets', walletRoutes);
+//app.use('/api/orders', orderRoutes);
+//app.use('/api/transactions', transactionRoutes);
 
 // WebSocket 서버 설정
 const wss = new WebSocket.Server({ server });

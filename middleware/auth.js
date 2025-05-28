@@ -7,8 +7,8 @@ const User = require('../models/User');
  */
 module.exports = async function(req, res, next) {
   try {
-    // 토큰 확인
-    const token = req.header('x-auth-token');
+    // 토큰 확인(수정: swagger용 authorization 헤더 추가 사용)
+    const token = req.header('x-auth-token') || req.header('authorization')?.split(' ')[1];
     
     // 토큰이 없는 경우
     if (!token) {
