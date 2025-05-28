@@ -5,6 +5,10 @@ const PriceHistory = require('../models/PriceHistory');
 // 클라이언트 관리
 const clients = new Map();
 
+// 코인의 최근 가격 캐싱위한 맵
+const coinMemory = new Map();
+
+
 // 코인 가격 업데이트 관리
 let updateInterval;
 const PRICE_UPDATE_INTERVAL = process.env.PRICE_UPDATE_INTERVAL || 1000;
@@ -15,9 +19,10 @@ function setupWebSocket(wss) {
     // 클라이언트 연결 시 고유 ID 생성
     const clientId = generateClientId();
     clients.set(clientId, { ws, userId: null, subscriptions: [] });
-    
     console.log(`새 클라이언트 연결됨: ${clientId}`);
-    
+    //(추가) ws에 clientId 저장
+    ws.clientId = clientId; 
+
     // 초기 코인 데이터 전송
     sendInitialCoinData(ws);
     
@@ -89,6 +94,8 @@ async function handleClientMessage(clientId, data) {
   
   const { ws } = client;
   
+  console.log(`클라이언트(${clientId}) 메시지 수신:`, data);
+
   switch (data.type) {
     case 'AUTH':
       // 사용자 인증 처리
@@ -97,21 +104,44 @@ async function handleClientMessage(clientId, data) {
     
     case 'SUBSCRIBE':
       // 특정 코인 구독 처리
-      if (data.coinId && !client.subscriptions.includes(data.coinId)) {
-        client.subscriptions.push(data.coinId);
+      if (data.coinId && !client.subscriptions.includes(data.coinId.toString())) {
+        client.subscriptions.push(data.coinId.toString());
       }
       break;
     
     case 'UNSUBSCRIBE':
       // 구독 취소 처리
       if (data.coinId) {
-        client.subscriptions = client.subscriptions.filter(id => id !== data.coinId);
+        client.subscriptions = client.subscriptions.filter(id => id !== data.coinId.toString());
       }
       break;
     
     default:
       sendErrorMessage(ws, 'Unknown message type');
   }
+}
+
+// 코인 최근 가격 로드
+function getRecentPrices(coinId) {
+  if (!coinMemory.has(coinId)) coinMemory.set(coinId, []);
+  return coinMemory.get(coinId);
+}
+
+// 코인 최근 가격 업데이트
+function updateRecentPrices(coinId, newPrice, maxLength = 10) {
+  const history = getRecentPrices(coinId);
+  const updated = [...history.slice(-maxLength + 1), newPrice];
+  coinMemory.set(coinId, updated);
+  return updated;
+}
+
+// 가격 소수점 자리수 계산
+function getDecimalPlaces(price) {
+  if (price >= 1000) return 2;
+  if (price >= 100) return 3;
+  if (price >= 1) return 4;
+  if (price >= 0.1) return 5;
+  return 6; // 극저가 코인
 }
 
 // 코인 가격 업데이트 시작
@@ -124,14 +154,35 @@ function startCoinPriceUpdates(wss) {
       // 각 코인 가격 업데이트
       for (const coin of coins) {
         // 가격 변동 생성 (-2% ~ +2%)
-        const priceChange = coin.currentPrice * (Math.random() * 0.04 - 0.02);
-        const newPrice = Math.max(0.01, coin.currentPrice + priceChange);
-        const roundedPrice = Math.round(newPrice * 100) / 100;
+        //const priceChange = coin.currentPrice * (Math.random() * 0.04 - 0.02);
+        //const newPrice = Math.max(0.01, coin.currentPrice + priceChange);
+        //const roundedPrice = Math.round(newPrice * 100) / 100;
+        
+        //이동 평균 기준 변동 패턴으로 변경
+        const coinId = coin._id.toString();
+        const recentPrices = getRecentPrices(coinId);
+
+        // 이평 계산
+        const avg =
+          recentPrices.length > 0
+          ? recentPrices.reduce((a, b) => a + b, 0) / recentPrices.length
+          : coin.currentPrice;
+
+        const reversion = (avg - coin.currentPrice) * 0.3;
+        const noise = (Math.random() * 0.01 - 0.005) * coin.currentPrice;
+        const priceChange = reversion + noise;
+
+        const newPrice = Math.max(0.00000001, coin.currentPrice + priceChange);
+
+        // 가격에 따라 반올림 자릿수 결정
+        const decimalPlaces = getDecimalPlaces(coin.currentPrice);
+        const roundedPrice = parseFloat(newPrice.toFixed(decimalPlaces));
         
         // 코인 가격 업데이트
-        await coin.updatePrice(roundedPrice);
+        updateRecentPrices(coinId, roundedPrice);
         
         // 가격 이력 기록 (일정 간격으로만 기록하면 더 효율적)
+        await coin.updatePrice(roundedPrice);
         await PriceHistory.recordPrice(coin._id, roundedPrice);
         
         // 업데이트된 코인 정보
@@ -142,7 +193,7 @@ function startCoinPriceUpdates(wss) {
           priceChange24h: coin.priceChangePercent24h
         };
         
-        // 모든 클라이언트에게 업데이트 전송
+        // 모든 클라이언트에게 업데이트 전송 -> (수정) 구독 여부 체크
         broadcastCoinUpdate(wss, updatedCoin);
       }
     } catch (error) {
@@ -157,10 +208,15 @@ function broadcastCoinUpdate(wss, coinData) {
     type: 'COIN_UPDATE',
     data: coinData
   });
-  
-  wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
+  wss.clients.forEach(c => {
+    const client = clients.get(c.clientId);
+    if (!client) return; // 클라이언트가 존재하지 않으면 무시
+    if (client.ws.readyState === WebSocket.OPEN){
+      // (수정) 구독 여부 체크
+      if (client.subscriptions.includes(coinData.id.toString())) { 
+        //console.log(`메시지 전송: ${client.userId} - ${coinData.symbol} - ${coinData.price}`);
+        client.ws.send(message);
+      }
     }
   });
 }
