@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+mongoose.set('strictQuery', false);
 const PriceHistory = require('./PriceHistory'); 
 
 const coinSchema = new mongoose.Schema({
