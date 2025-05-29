@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+mongoose.set('strictQuery', false);
 
 const transactionSchema = new mongoose.Schema({
   buyOrder: {

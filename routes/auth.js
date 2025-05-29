@@ -27,10 +27,13 @@ const authMiddleware = require('../middleware/auth');
  *             properties:
  *               username:
  *                 type: string
+ *                 example: test-user
  *               email:
  *                 type: string
+ *                 example: test@example.com
  *               password:
  *                 type: string
+ *                 example: secure123  
  *     responses:
  *       201:
  *         description: 회원가입 성공
@@ -55,8 +58,10 @@ router.post('/register', authController.register);
  *             properties:
  *               email:
  *                 type: string
+ *                 example: test@example.com
  *               password:
  *                 type: string
+ *                 example: secure123  
  *     responses:
  *       200:
  *         description: 로그인 성공 및 JWT 반환

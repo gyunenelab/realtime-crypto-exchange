@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const mongoose = require('mongoose');
+mongoose.set('strictQuery', false);
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
@@ -14,8 +15,8 @@ const swaggerSpec = require('./swagger/swaggerConfig');
 const authRoutes = require('./routes/auth');
 const coinRoutes = require('./routes/coins');
 const walletRoutes = require('./routes/wallets');
-//const orderRoutes = require('./routes/orders');
-//const transactionRoutes = require('./routes/transactions');
+const orderRoutes = require('./routes/orders');
+const transactionRoutes = require('./routes/transactions');
 
 // WebSocket 핸들러
 const setupWebSocket = require('./websocket/setup');
@@ -40,8 +41,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/auth', authRoutes);
 app.use('/api/coins', coinRoutes);
 app.use('/api/wallets', walletRoutes);
-//app.use('/api/orders', orderRoutes);
-//app.use('/api/transactions', transactionRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 // WebSocket 서버 설정
 const wss = new WebSocket.Server({ server });

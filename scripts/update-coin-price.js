@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+mongoose.set('strictQuery', false);
 const Coin = require('../models/Coin');
 const PriceHistory = require('../models/PriceHistory'); 
 require('dotenv').config();

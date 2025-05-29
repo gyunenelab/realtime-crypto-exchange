@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+mongoose.set('strictQuery', false);
 
 const walletSchema = new mongoose.Schema({
   user: {
@@ -58,6 +59,25 @@ walletSchema.methods.withdraw = function(amount) {
 // 사용자별 모든 지갑 조회 (정적 메서드)
 walletSchema.statics.findByUser = function(userId) {
   return this.find({ user: userId }).populate('coin');
+};
+
+walletSchema.statics.findBalanceByUser = async function(userId) {
+  const wallets = await this.find({ user: userId }).populate('coin');
+
+  return wallets.map(wallet => {
+    const symbol = wallet.coin?.symbol || 'CASH_KRW';
+    const name = wallet.coin?.name || '현금 (KRW)';
+
+    return {
+      _id: wallet._id,
+      coin: wallet.coin?._id || null,
+      symbol,
+      name,
+      balance: wallet.balance,
+      updatedAt: wallet.updatedAt,
+      createdAt: wallet.createdAt,
+    };
+  });
 };
 
 const Wallet = mongoose.model('Wallet', walletSchema);

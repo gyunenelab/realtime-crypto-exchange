@@ -103,18 +103,36 @@ async function handleClientMessage(clientId, data) {
       break;
     
     case 'SUBSCRIBE':
-      // 특정 코인 구독 처리
-      if (data.coinId && !client.subscriptions.includes(data.coinId.toString())) {
-        client.subscriptions.push(data.coinId.toString());
+    case 'UNSUBSCRIBE': {
+      let coinId = data.coinId;
+      // symbol이 있으면 DB 조회해서 coinId 획득
+      if (!coinId && data.symbol) {
+        const coin = await Coin.findOne({ symbol: data.symbol });
+        if (!coin) {
+          sendErrorMessage(ws, `존재하지 않는 코인 심볼: ${data.symbol}`);
+          return;
+        }
+        coinId = coin._id.toString();
+      } else if (coinId) {
+        coinId = coinId.toString();
+      }
+
+      if (!coinId) {
+        sendErrorMessage(ws, 'coinId 또는 symbol이 필요합니다');
+        return;
+      }
+
+      if (data.type === 'SUBSCRIBE') {
+        if (!client.subscriptions.includes(coinId)) {
+          client.subscriptions.push(coinId);
+          console.log(`클라이언트(${clientId}) 구독 추가: ${coinId}`);
+        }
+      } else {
+        client.subscriptions = client.subscriptions.filter(id => id !== coinId);
+        console.log(`클라이언트(${clientId}) 구독 제거: ${coinId}`);
       }
       break;
-    
-    case 'UNSUBSCRIBE':
-      // 구독 취소 처리
-      if (data.coinId) {
-        client.subscriptions = client.subscriptions.filter(id => id !== data.coinId.toString());
-      }
-      break;
+    }
     
     default:
       sendErrorMessage(ws, 'Unknown message type');

@@ -1,6 +1,8 @@
 // scripts/seed-coins.js
 const mongoose = require('mongoose');
+mongoose.set('strictQuery', false);
 const Coin = require('../models/Coin');
+const Wallet = require('../models/Wallet');
 require('dotenv').config();
 
 async function seedCoins() {
@@ -22,6 +24,14 @@ async function seedCoins() {
         currentPrice: 3500000,
         dailyVolume: 500000000,
         marketCap: 500000000000,
+      },
+      {
+        symbol: 'CASH_KRW',
+        name: '현금 (KRW)',
+        currentPrice: 1,
+        dailyVolume: 0,
+        marketCap: 0,
+        active: false, // 현금은 활성화되지 않음
       },
     ]);
 
