@@ -4,7 +4,7 @@ const Wallet = require('../models/Wallet');
 const Coin = require('../models/Coin');
 
 const getCoinId = require('../utils/getCoinId');
-const { sendOrderUpdate, sendTransactionNotification } = require('./setup');
+const { sendOrderUpdate, sendTransactionNotification } = require('../websocket/setup');
 
 // 주문 생성
 exports.createOrder = async (req, res) => {

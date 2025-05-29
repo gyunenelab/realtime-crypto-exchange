@@ -17,6 +17,7 @@ const coinRoutes = require('./routes/coins');
 const walletRoutes = require('./routes/wallets');
 const orderRoutes = require('./routes/orders');
 const transactionRoutes = require('./routes/transactions');
+const adminRoutes = require('./routes/admin');
 
 // WebSocket 핸들러
 const setupWebSocket = require('./websocket/setup');
@@ -43,6 +44,7 @@ app.use('/api/coins', coinRoutes);
 app.use('/api/wallets', walletRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/admin', adminRoutes);
 
 // WebSocket 서버 설정
 const wss = new WebSocket.Server({ server });

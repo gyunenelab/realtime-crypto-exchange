@@ -66,7 +66,6 @@ router.get('/:id', auth, orders.getOrderById);
  *             properties:
  *               coinId:
  *                 type: string
- *                 example: '68369f0c05206252a137276b'
  *               type:
  *                 type: string
  *                 enum: [buy, sell]
